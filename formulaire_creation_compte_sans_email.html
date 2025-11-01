@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Création de compte (sans e‑mail)</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f9;margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    .card{background:#fff;padding:24px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);max-width:400px;width:100%}
+    h1{margin-top:0;text-align:center}
+    label{display:block;margin-top:10px;font-weight:bold}
+    input[type=text],input[type=email],input[type=password]{width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:6px}
+    .btn{margin-top:16px;width:100%;padding:10px;border:none;border-radius:6px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}
+    .btn[disabled]{opacity:0.6;cursor:not-allowed}
+    .error{color:#dc2626;font-size:13px;margin-top:4px}
+    .small{text-align:center;margin-top:12px;font-size:14px}
+    a{color:#2563eb;text-decoration:none}
+
+    /* Styles pour la popup */
+    .popup-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;visibility:hidden;opacity:0;transition:visibility 0s,opacity 0.3s ease;}
+    .popup-overlay.active{visibility:visible;opacity:1;}
+    .popup{background:#fff;padding:20px 30px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.2);text-align:center;}
+    .popup h2{margin-top:0;color:#16a34a;}
+    .popup button{margin-top:15px;padding:8px 20px;border:none;border-radius:6px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer;}
+  </style>
+</head>
+<body>
+  <div class="card" id="signupCard">
+    <h1>Créer un compte</h1>
+    <form id="signupForm">
+      <label for="firstname">Prénom *</label>
+      <input id="firstname" type="text" required>
+      <div class="error" id="errFirstname"></div>
+
+      <label for="lastname">Nom *</label>
+      <input id="lastname" type="text" required>
+      <div class="error" id="errLastname"></div>
+
+      <label for="email">Adresse e‑mail *</label>
+      <input id="email" type="email" required>
+      <div class="error" id="errEmail"></div>
+
+      <label for="password">Mot de passe *</label>
+      <input id="password" type="password" required>
+      <div class="error" id="errPassword"></div>
+
+      <label for="confirmPassword">Confirmation du mot de passe *</label>
+      <input id="confirmPassword" type="password" required>
+      <div class="error" id="errConfirm"></div>
+
+      <label style="display:flex;align-items:center;margin-top:10px">
+        <input id="cgu" type="checkbox" style="margin-right:6px">J’accepte les CGU *
+      </label>
+      <div class="error" id="errCgu"></div>
+
+      <button class="btn" type="submit" id="submitBtn">Créer mon compte</button>
+    </form>
+    <div class="small">Déjà un compte ? <a href="#" id="goLogin">Se connecter</a></div>
+  </div>
+
+  <div class="card" id="loginCard" style="display:none">
+    <h1>Connexion</h1>
+    <form id="loginForm">
+      <label for="loginEmail">Adresse e‑mail</label>
+      <input id="loginEmail" type="email" required>
+
+      <label for="loginPassword">Mot de passe</label>
+      <input id="loginPassword" type="password" required>
+
+      <button class="btn" type="submit">Se connecter</button>
+    </form>
+    <div class="small"><a href="#" id="backToSignup">← Retour à l’inscription</a></div>
+  </div>
+
+  <!-- Popup de confirmation -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup">
+      <h2>Compte créé avec succès !</h2>
+      <p>Vous allez être redirigé vers la page de connexion.</p>
+      <button id="popupBtn">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('signupForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const popupOverlay = document.getElementById('popupOverlay');
+    const popupBtn = document.getElementById('popupBtn');
+
+    function showError(id, msg){ document.getElementById('err'+id).textContent = msg || ''; }
+
+    function validate(){
+      const fn = document.getElementById('firstname').value.trim();
+      const ln = document.getElementById('lastname').value.trim();
+      const em = document.getElementById('email').value.trim();
+      const pw = document.getElementById('password').value;
+      const cf = document.getElementById('confirmPassword').value;
+      const cgu = document.getElementById('cgu').checked;
+
+      showError('Firstname', fn?'':'Requis');
+      showError('Lastname', ln?'':'Requis');
+      showError('Email', /\S+@\S+\.\S+/.test(em)?'':'Email invalide');
+      showError('Password', pw.length>=8?'':'Min. 8 caractères');
+      showError('Confirm', (cf && cf===pw)?'':'Doit correspondre au mot de passe');
+      showError('Cgu', cgu?'':'Obligatoire');
+
+      return fn && ln && /\S+@\S+\.\S+/.test(em) && pw.length>=8 && (cf===pw) && cgu;
+    }
+
+    form.addEventListener('submit', e=>{
+      e.preventDefault();
+      if(!validate()) return;
+      popupOverlay.classList.add('active');
+    });
+
+    popupBtn.addEventListener('click', ()=>{
+      popupOverlay.classList.remove('active');
+      submitBtn.disabled = true;
+      document.getElementById('signupCard').style.display='none';
+      document.getElementById('loginCard').style.display='block';
+    });
+
+    document.getElementById('goLogin').addEventListener('click', e=>{
+      e.preventDefault();
+      document.getElementById('signupCard').style.display='none';
+      document.getElementById('loginCard').style.display='block';
+    });
+
+    document.getElementById('backToSignup').addEventListener('click', e=>{
+      e.preventDefault();
+      document.getElementById('loginCard').style.display='none';
+      document.getElementById('signupCard').style.display='block';
+    });
+  </script>
+</body>
+</html>
